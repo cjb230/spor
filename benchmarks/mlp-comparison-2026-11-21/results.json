@@ -1,0 +1,82 @@
+{
+  "games_per_checkpoint": 20000,
+  "before": {
+    "wins": 16,
+    "draws": 0,
+    "losses": 19984,
+    "win_rate": 0.0008,
+    "score": 0.0008
+  },
+  "after": {
+    "wins": 97,
+    "draws": 0,
+    "losses": 19903,
+    "win_rate": 0.00485,
+    "score": 0.00485
+  },
+  "by_seat": {
+    "0": {
+      "before": {
+        "wins": 9,
+        "draws": 0,
+        "losses": 9991,
+        "win_rate": 0.0009,
+        "score": 0.0009
+      },
+      "after": {
+        "wins": 44,
+        "draws": 0,
+        "losses": 9956,
+        "win_rate": 0.0044,
+        "score": 0.0044
+      }
+    },
+    "1": {
+      "before": {
+        "wins": 7,
+        "draws": 0,
+        "losses": 9993,
+        "win_rate": 0.0007,
+        "score": 0.0007
+      },
+      "after": {
+        "wins": 53,
+        "draws": 0,
+        "losses": 9947,
+        "win_rate": 0.0053,
+        "score": 0.0053
+      }
+    }
+  },
+  "decks": 10000,
+  "score_improvement": 0.00405,
+  "score_95_ci": {
+    "before": [
+      0.00045,
+      0.0012
+    ],
+    "after": [
+      0.0039,
+      0.00585
+    ],
+    "improvement": [
+      0.00305,
+      0.0051
+    ]
+  },
+  "bootstrap_resamples": 10000,
+  "loss_to_win": 97,
+  "win_to_loss": 16,
+  "timings": {
+    "before": {
+      "elapsed_seconds": 2990.35042408196,
+      "inference_seconds": 35.08886206697207,
+      "inference_decisions": 369382
+    },
+    "after": {
+      "elapsed_seconds": 2889.0626776269637,
+      "inference_seconds": 34.92026081925724,
+      "inference_decisions": 378400
+    }
+  }
+}

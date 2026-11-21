@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "decks": 10000,
+  "games_per_checkpoint": 20000,
+  "master_seed": "318576952742040875856913753623906778349",
+  "schedule_sha256": "b8cee09a94c4f30585c7a7bf658059cdea0f37699740d1aa52bb7f4f5020ba99",
+  "initialization_seed": 20261121,
+  "opponent": "mcb:16",
+  "teacher_deck_ranges": [
+    [
+      10000,
+      11499
+    ],
+    [
+      11500,
+      12999
+    ],
+    [
+      13000,
+      14499
+    ],
+    [
+      14500,
+      15999
+    ]
+  ],
+  "teacher_opponents": [
+    "builder",
+    "tactician",
+    "planner",
+    "mcb:16"
+  ],
+  "training_seconds": 1200,
+  "training_seed": 1,
+  "batch_size": 512,
+  "learning_rate": 0.001,
+  "selection": "minimum held-out validation cross entropy",
+  "before_sha256": "b49898960611fb9232d11c10f7b97508605cd540c1a14bb21424e50464952d0f",
+  "worker_sha256": "b52483a58825cf47d036e7bf4fb750d746b89581a356c952b2219beee7d73ba3",
+  "teacher_binary_sha256": "56f905dba9f2283cf18147e53e17d59414d69910c38a7bc276700991301ce361",
+  "python_executable": "/Users/cjb/.pyenv/versions/spor/bin/python",
+  "python_version": "3.15.2 (main, Nov  2 2026, 12:39:11) [Clang 16.0.0 (clang-1600.0.26.6)]",
+  "torch_version": "2.15.0",
+  "numpy_version": "2.5.5",
+  "source_sha256": {
+    "schotten/neural/encoding.py": "3c9a5795c5ea916d209449b0b92c20726b7ca6fe0e03bf1b810e0b419b2d5d67",
+    "schotten/neural/model.py": "daf9763c5aa07b18446b9755324744ca653fc5e1bee49a7dc56efb5e236d938f",
+    "schotten/neural/evaluate.py": "df39e34e5e8e9cb4fc42451121e7727a4ad633ce3b448d81094067119673148c",
+    "schotten/neural/timed_train.py": "59e35b966f89465cbddc7fb5f58f05861886d762653ac102885e8a4867088132",
+    "rust/examples/neural_worker.rs": "6c4bc502a47989d802e5617e928741dbab960ec7016854b35062b58d924d243e",
+    "/Users/cjb/repos/spor/benchmarks/mlp_experiment.py": "0b5c1558f4553dc568a037f226d3d257cad5c8b3a0cc94a091625e4ac184066b"
+  },
+  "after_sha256": "ad53ace19f6c051a81b707ed8eb65adff9010466e0de462eae7d9b611aad2b9c",
+  "last_sha256": "e8b9720f5a3e917743d38b7ca6246552edf63b321a058795a356acd8eebe3598",
+  "actual_training_seconds": 1200.2410172500531,
+  "selected_epoch": 3,
+  "selected_updates": 729,
+  "selected_metrics": {
+    "epoch": 3,
+    "updates": 729,
+    "train_loss": 3.567123192882231,
+    "train_accuracy": 0.08329581993569132,
+    "val_loss": 3.67314679738697,
+    "val_accuracy": 0.05545994739747378,
+    "train_examples": 124400,
+    "val_examples": 30797
+  },
+  "final_metrics": {
+    "epoch": 947,
+    "updates": 230280,
+    "train_loss": 0.1777518904715214,
+    "train_accuracy": 0.9497223860062893,
+    "val_loss": 21.52088707512252,
+    "val_accuracy": 0.04591356300938403,
+    "train_examples": 124400,
+    "val_examples": 30797
+  },
+  "timing_note": "Baseline overlapped MPS training; remaining before/after slices may overlap. Elapsed times are not controlled hardware benchmarks."
+}

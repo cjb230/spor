@@ -1,0 +1,25 @@
+{
+  "description": "Secondary diagnostic: first 1000 primary scheduled games; checkpoint selected independently by validation loss",
+  "games": 1000,
+  "phases": {
+    "before": {
+      "wins": 1,
+      "losses": 999,
+      "draws": 0,
+      "win_rate": 0.001
+    },
+    "after": {
+      "wins": 6,
+      "losses": 994,
+      "draws": 0,
+      "win_rate": 0.006
+    },
+    "last": {
+      "wins": 4,
+      "losses": 996,
+      "draws": 0,
+      "win_rate": 0.004
+    }
+  },
+  "last_checkpoint_sha256": "e8b9720f5a3e917743d38b7ca6246552edf63b321a058795a356acd8eebe3598"
+}

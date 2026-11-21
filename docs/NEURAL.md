@@ -159,3 +159,69 @@ python -m schotten.neural join GAME_ID --checkpoint models/mlp-v1.pt
 
 Pass `--url http://host:8000` to select a server. The checkpoint is loaded locally;
 the server continues to receive ordinary versioned REST turns.
+
+## Controlled before/after experiments
+
+The [first completed MCB:16 comparison](../benchmarks/mlp-comparison-2026-11-21/RESULTS.md)
+measured 20,000 games per checkpoint. Wins increased from 0.080% to 0.485%,
+but the fixed teacher corpus overfit heavily; the validation-selected weights
+came from epoch 3 rather than the end of the 20-minute training budget.
+
+The first MCB:16 comparison uses a fresh policy, a frozen paired schedule, separate
+teacher recordings, and a validation-selected checkpoint after 20 minutes of
+training. Experiment artifacts and separate per-command logs live under
+`models/mlp-experiment-2026-11-21/`. The dated experiment plan records the exact
+protocol; `manifest.json` freezes seeds, initialization and code hashes.
+
+Build the native batched evaluation worker from `rust/`:
+
+```sh
+cargo build --release --locked --example neural_worker
+```
+
+`python -m schotten.neural.evaluate` exchanges JSON-lines messages with this
+worker. The Python process runs CPU policy inference; Rust owns the game, claim
+proofs and MCB:16. Each worker snapshot exposes only the neural player's view.
+Evaluation uses fixed argmax choices and independently seeded MCB decisions.
+This bulk evaluation path is separate from the ordinary REST player.
+
+A schedule is a JSON object with `schema_version: 1`, `opponent: "mcb:16"` and
+`games`, an array of `{seed, bot_seed, mlp_seat}` objects. Pair each deck in both
+seat orientations, keeping its MCB seed attached to the opponent. For example,
+from the repository root, evaluate a slice of a previously frozen schedule:
+
+```sh
+python benchmarks/log_command.py --log RUN/logs/before-00000.log -- \
+  python -m schotten.neural.evaluate \
+  --checkpoint RUN/before.pt --schedule RUN/schedule.json \
+  --worker rust/target/release/examples/neural_worker \
+  --output RUN/before/00000.json --start 0 --count 1000
+```
+
+Replace `RUN` with the experiment directory. Reports include the complete game
+schedule slice, outcomes, checkpoint/worker/schedule hashes and timing totals.
+Existing reports and command logs are never silently overwritten.
+
+The timed trainer continues from the frozen initialization, and can resume at an
+exact minibatch position rather than restarting a partial epoch:
+
+```sh
+python benchmarks/log_command.py --log RUN/logs/train-1.log -- \
+  python -m schotten.neural.timed_train \
+  --recordings RUN/teacher-games --initial RUN/before.pt \
+  --output RUN/last.pt --best RUN/best.pt --seconds 600 --device mps
+```
+
+Run another segment with the same options plus `--resume RUN/last.pt` and a new
+command log. This trainer selects exactly `mcb:16` teacher decisions and requires
+the default 256–256 architecture. Its wall-time budget includes optimization,
+validation and checkpoint writes, but excludes loading/fingerprinting data.
+Budget checks occur between batches; final validation/saving can slightly exceed
+the requested time. Both last and best checkpoints are retained, including an
+initial-weight best checkpoint if training fails to improve validation loss.
+
+The frozen schedule generator and paired-result summarizer are available as
+`python -m benchmarks.mlp_experiment`. Summary confidence intervals resample
+whole deck pairs, retaining the dependence between mirrored and before/after
+games. These intervals concern the fixed policy and opponent; one training run
+does not measure variability across neural initialization or training seeds.
