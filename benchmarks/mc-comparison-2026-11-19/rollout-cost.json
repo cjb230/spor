@@ -1,0 +1,477 @@
+{
+  "command": [
+    "rust/target/release/examples/mc_rollout_cost"
+  ],
+  "binary_sha256": "8f8d1a6b662ee2fb0a518d236fadb3d0a4af2ea90eb732d8135b66a94447b377",
+  "wall_seconds": 12.495539250026923,
+  "records": [
+    {
+      "chosen_move": [
+        25,
+        2
+      ],
+      "deck_seed": 7,
+      "legal_moves": 54,
+      "policy": "Builder",
+      "repeat": 0,
+      "samples": 8,
+      "seconds": 0.049824083,
+      "turn": 4
+    },
+    {
+      "chosen_move": [
+        25,
+        8
+      ],
+      "deck_seed": 7,
+      "legal_moves": 54,
+      "policy": "Planner",
+      "repeat": 0,
+      "samples": 8,
+      "seconds": 1.352836,
+      "turn": 4
+    },
+    {
+      "chosen_move": [
+        20,
+        2
+      ],
+      "deck_seed": 7,
+      "legal_moves": 54,
+      "policy": "Planner",
+      "repeat": 1,
+      "samples": 8,
+      "seconds": 1.369935125,
+      "turn": 4
+    },
+    {
+      "chosen_move": [
+        20,
+        1
+      ],
+      "deck_seed": 7,
+      "legal_moves": 54,
+      "policy": "Builder",
+      "repeat": 1,
+      "samples": 8,
+      "seconds": 0.038180125,
+      "turn": 4
+    },
+    {
+      "chosen_move": [
+        25,
+        5
+      ],
+      "deck_seed": 7,
+      "legal_moves": 54,
+      "policy": "Builder",
+      "repeat": 2,
+      "samples": 8,
+      "seconds": 0.036420917,
+      "turn": 4
+    },
+    {
+      "chosen_move": [
+        25,
+        1
+      ],
+      "deck_seed": 7,
+      "legal_moves": 54,
+      "policy": "Planner",
+      "repeat": 2,
+      "samples": 8,
+      "seconds": 1.427517875,
+      "turn": 4
+    },
+    {
+      "chosen_move": [
+        3,
+        7
+      ],
+      "deck_seed": 7,
+      "legal_moves": 42,
+      "policy": "Builder",
+      "repeat": 0,
+      "samples": 8,
+      "seconds": 0.018358458,
+      "turn": 16
+    },
+    {
+      "chosen_move": [
+        49,
+        7
+      ],
+      "deck_seed": 7,
+      "legal_moves": 42,
+      "policy": "Planner",
+      "repeat": 0,
+      "samples": 8,
+      "seconds": 0.549316083,
+      "turn": 16
+    },
+    {
+      "chosen_move": [
+        42,
+        7
+      ],
+      "deck_seed": 7,
+      "legal_moves": 42,
+      "policy": "Planner",
+      "repeat": 1,
+      "samples": 8,
+      "seconds": 0.57596825,
+      "turn": 16
+    },
+    {
+      "chosen_move": [
+        42,
+        8
+      ],
+      "deck_seed": 7,
+      "legal_moves": 42,
+      "policy": "Builder",
+      "repeat": 1,
+      "samples": 8,
+      "seconds": 0.018683625,
+      "turn": 16
+    },
+    {
+      "chosen_move": [
+        42,
+        6
+      ],
+      "deck_seed": 7,
+      "legal_moves": 42,
+      "policy": "Builder",
+      "repeat": 2,
+      "samples": 8,
+      "seconds": 0.019457083,
+      "turn": 16
+    },
+    {
+      "chosen_move": [
+        42,
+        3
+      ],
+      "deck_seed": 7,
+      "legal_moves": 42,
+      "policy": "Planner",
+      "repeat": 2,
+      "samples": 8,
+      "seconds": 0.605672042,
+      "turn": 16
+    },
+    {
+      "chosen_move": [
+        49,
+        3
+      ],
+      "deck_seed": 7,
+      "legal_moves": 30,
+      "policy": "Builder",
+      "repeat": 0,
+      "samples": 8,
+      "seconds": 0.006262708,
+      "turn": 28
+    },
+    {
+      "chosen_move": [
+        49,
+        3
+      ],
+      "deck_seed": 7,
+      "legal_moves": 30,
+      "policy": "Planner",
+      "repeat": 0,
+      "samples": 8,
+      "seconds": 0.1211265,
+      "turn": 28
+    },
+    {
+      "chosen_move": [
+        49,
+        3
+      ],
+      "deck_seed": 7,
+      "legal_moves": 30,
+      "policy": "Planner",
+      "repeat": 1,
+      "samples": 8,
+      "seconds": 0.118167708,
+      "turn": 28
+    },
+    {
+      "chosen_move": [
+        49,
+        3
+      ],
+      "deck_seed": 7,
+      "legal_moves": 30,
+      "policy": "Builder",
+      "repeat": 1,
+      "samples": 8,
+      "seconds": 0.006631542,
+      "turn": 28
+    },
+    {
+      "chosen_move": [
+        49,
+        3
+      ],
+      "deck_seed": 7,
+      "legal_moves": 30,
+      "policy": "Builder",
+      "repeat": 2,
+      "samples": 8,
+      "seconds": 0.006174417,
+      "turn": 28
+    },
+    {
+      "chosen_move": [
+        49,
+        3
+      ],
+      "deck_seed": 7,
+      "legal_moves": 30,
+      "policy": "Planner",
+      "repeat": 2,
+      "samples": 8,
+      "seconds": 0.118745625,
+      "turn": 28
+    },
+    {
+      "chosen_move": [
+        1,
+        1
+      ],
+      "deck_seed": 42,
+      "legal_moves": 54,
+      "policy": "Builder",
+      "repeat": 0,
+      "samples": 8,
+      "seconds": 0.033271292,
+      "turn": 4
+    },
+    {
+      "chosen_move": [
+        44,
+        2
+      ],
+      "deck_seed": 42,
+      "legal_moves": 54,
+      "policy": "Planner",
+      "repeat": 0,
+      "samples": 8,
+      "seconds": 1.218554584,
+      "turn": 4
+    },
+    {
+      "chosen_move": [
+        44,
+        0
+      ],
+      "deck_seed": 42,
+      "legal_moves": 54,
+      "policy": "Planner",
+      "repeat": 1,
+      "samples": 8,
+      "seconds": 1.276741792,
+      "turn": 4
+    },
+    {
+      "chosen_move": [
+        48,
+        7
+      ],
+      "deck_seed": 42,
+      "legal_moves": 54,
+      "policy": "Builder",
+      "repeat": 1,
+      "samples": 8,
+      "seconds": 0.031307958,
+      "turn": 4
+    },
+    {
+      "chosen_move": [
+        44,
+        5
+      ],
+      "deck_seed": 42,
+      "legal_moves": 54,
+      "policy": "Builder",
+      "repeat": 2,
+      "samples": 8,
+      "seconds": 0.031503125,
+      "turn": 4
+    },
+    {
+      "chosen_move": [
+        44,
+        6
+      ],
+      "deck_seed": 42,
+      "legal_moves": 54,
+      "policy": "Planner",
+      "repeat": 2,
+      "samples": 8,
+      "seconds": 1.239092208,
+      "turn": 4
+    },
+    {
+      "chosen_move": [
+        40,
+        7
+      ],
+      "deck_seed": 42,
+      "legal_moves": 42,
+      "policy": "Builder",
+      "repeat": 0,
+      "samples": 8,
+      "seconds": 0.015600959,
+      "turn": 16
+    },
+    {
+      "chosen_move": [
+        19,
+        2
+      ],
+      "deck_seed": 42,
+      "legal_moves": 42,
+      "policy": "Planner",
+      "repeat": 0,
+      "samples": 8,
+      "seconds": 0.433273166,
+      "turn": 16
+    },
+    {
+      "chosen_move": [
+        48,
+        3
+      ],
+      "deck_seed": 42,
+      "legal_moves": 42,
+      "policy": "Planner",
+      "repeat": 1,
+      "samples": 8,
+      "seconds": 0.444427041,
+      "turn": 16
+    },
+    {
+      "chosen_move": [
+        2,
+        4
+      ],
+      "deck_seed": 42,
+      "legal_moves": 42,
+      "policy": "Builder",
+      "repeat": 1,
+      "samples": 8,
+      "seconds": 0.018969584,
+      "turn": 16
+    },
+    {
+      "chosen_move": [
+        40,
+        6
+      ],
+      "deck_seed": 42,
+      "legal_moves": 42,
+      "policy": "Builder",
+      "repeat": 2,
+      "samples": 8,
+      "seconds": 0.018388542,
+      "turn": 16
+    },
+    {
+      "chosen_move": [
+        48,
+        3
+      ],
+      "deck_seed": 42,
+      "legal_moves": 42,
+      "policy": "Planner",
+      "repeat": 2,
+      "samples": 8,
+      "seconds": 0.443497666,
+      "turn": 16
+    },
+    {
+      "chosen_move": [
+        50,
+        2
+      ],
+      "deck_seed": 42,
+      "legal_moves": 30,
+      "policy": "Builder",
+      "repeat": 0,
+      "samples": 8,
+      "seconds": 0.00461975,
+      "turn": 28
+    },
+    {
+      "chosen_move": [
+        35,
+        5
+      ],
+      "deck_seed": 42,
+      "legal_moves": 30,
+      "policy": "Planner",
+      "repeat": 0,
+      "samples": 8,
+      "seconds": 0.079011625,
+      "turn": 28
+    },
+    {
+      "chosen_move": [
+        35,
+        7
+      ],
+      "deck_seed": 42,
+      "legal_moves": 30,
+      "policy": "Planner",
+      "repeat": 1,
+      "samples": 8,
+      "seconds": 0.068375125,
+      "turn": 28
+    },
+    {
+      "chosen_move": [
+        35,
+        7
+      ],
+      "deck_seed": 42,
+      "legal_moves": 30,
+      "policy": "Builder",
+      "repeat": 1,
+      "samples": 8,
+      "seconds": 0.004932584,
+      "turn": 28
+    },
+    {
+      "chosen_move": [
+        48,
+        7
+      ],
+      "deck_seed": 42,
+      "legal_moves": 30,
+      "policy": "Builder",
+      "repeat": 2,
+      "samples": 8,
+      "seconds": 0.004772333,
+      "turn": 28
+    },
+    {
+      "chosen_move": [
+        38,
+        5
+      ],
+      "deck_seed": 42,
+      "legal_moves": 30,
+      "policy": "Planner",
+      "repeat": 2,
+      "samples": 8,
+      "seconds": 0.074892125,
+      "turn": 28
+    }
+  ]
+}

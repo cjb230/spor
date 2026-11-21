@@ -1,0 +1,15 @@
+{
+  "agents": [
+    {"name": "random", "strategy": "random", "seed": 10},
+    {"name": "greedy", "strategy": "greedy", "seed": 20},
+    "builder",
+    "tactician",
+    "planner"
+  ],
+  "games_per_pair": 100,
+  "deck_seed": 1,
+  "agent_seed": 1,
+  "record_games": 10,
+  "record_dir": "tournament-recordings",
+  "threads": 14
+}

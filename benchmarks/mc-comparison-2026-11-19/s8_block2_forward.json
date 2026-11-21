@@ -1,0 +1,51 @@
+{
+  "command": [
+    "/Users/cjb/repos/spor/rust/target/release/schotten-native",
+    "tournament",
+    "--agents",
+    "mcp:8",
+    "mcb:8",
+    "--games-per-pair",
+    "100",
+    "--deck-seed",
+    "2001",
+    "--agent-seeds",
+    "123",
+    "456",
+    "--record-games",
+    "0",
+    "--threads",
+    "14"
+  ],
+  "deck_seed": 2001,
+  "agent_seeds": [
+    123,
+    456
+  ],
+  "games": 100,
+  "elapsed_seconds": 139.30210141697899,
+  "exit_code": 0,
+  "binary_sha256": "d57dc9c6fdf99dd978f79effb3afe252938aa0527ba7e667eb9ade61370630cd",
+  "standings": [
+    {
+      "name": "mcb:8",
+      "strategy": "mcb:8",
+      "wins": 58,
+      "played": 100,
+      "losses": 42,
+      "draws": 0,
+      "win_percent": 58.0
+    },
+    {
+      "name": "mcp:8",
+      "strategy": "mcp:8",
+      "wins": 42,
+      "played": 100,
+      "losses": 58,
+      "draws": 0,
+      "win_percent": 42.0
+    }
+  ],
+  "stdout": "Agent  Strategy  Victories    Played    Losses     Draws    Win %\n-----------------------------------------------------------------\nmcb:8  mcb:8            58       100        42         0    58.0%\nmcp:8  mcp:8            42       100        58         0    42.0%\n\nHead to head (row's win % against column; games in brackets)\n               mcb:8          mcp:8\nmcb:8              -    58.0% (100)\nmcp:8    42.0% (100)              -\n\nGames played: 100 / 100 | Draws: 0 | Elapsed: 139.30s\n",
+  "stderr": "Deck seed: 2001 | Agent starting seeds: mcp:8=123, mcb:8=456\n\n0 / 100 games played\n1 / 100 games played\n2 / 100 games played\n3 / 100 games played\n4 / 100 games played\n5 / 100 games played\n6 / 100 games played\n7 / 100 games played\n8 / 100 games played\n9 / 100 games played\n11 / 100 games played\n12 / 100 games played\n13 / 100 games played\n14 / 100 games played\n15 / 100 games played\n16 / 100 games played\n17 / 100 games played\n18 / 100 games played\n19 / 100 games played\n20 / 100 games played\n21 / 100 games played\n23 / 100 games played\n24 / 100 games played\n26 / 100 games played\n27 / 100 games played\n28 / 100 games played\n29 / 100 games played\n30 / 100 games played\n31 / 100 games played\n32 / 100 games played\n34 / 100 games played\n35 / 100 games played\n36 / 100 games played\n37 / 100 games played\n38 / 100 games played\n39 / 100 games played\n40 / 100 games played\n41 / 100 games played\n42 / 100 games played\n43 / 100 games played\n44 / 100 games played\n45 / 100 games played\n47 / 100 games played\n48 / 100 games played\n49 / 100 games played\n50 / 100 games played\n51 / 100 games played\n52 / 100 games played\n53 / 100 games played\n54 / 100 games played\n55 / 100 games played\n56 / 100 games played\n57 / 100 games played\n58 / 100 games played\n59 / 100 games played\n60 / 100 games played\n61 / 100 games played\n62 / 100 games played\n63 / 100 games played\n64 / 100 games played\n65 / 100 games played\n66 / 100 games played\n67 / 100 games played\n69 / 100 games played\n70 / 100 games played\n72 / 100 games played\n73 / 100 games played\n74 / 100 games played\n75 / 100 games played\n76 / 100 games played\n77 / 100 games played\n78 / 100 games played\n79 / 100 games played\n80 / 100 games played\n81 / 100 games played\n82 / 100 games played\n83 / 100 games played\n84 / 100 games played\n85 / 100 games played\n86 / 100 games played\n87 / 100 games played\n88 / 100 games played\n89 / 100 games played\n90 / 100 games played\n91 / 100 games played\n92 / 100 games played\n94 / 100 games played\n95 / 100 games played\n96 / 100 games played\n97 / 100 games played\n98 / 100 games played\n99 / 100 games played\n100 / 100 games played\n"
+}

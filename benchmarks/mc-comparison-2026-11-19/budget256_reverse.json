@@ -1,0 +1,51 @@
+{
+  "command": [
+    "/Users/cjb/repos/spor/rust/target/release/schotten-native",
+    "tournament",
+    "--agents",
+    "mcb:256",
+    "mcp:8",
+    "--games-per-pair",
+    "50",
+    "--deck-seed",
+    "1001",
+    "--agent-seeds",
+    "43",
+    "42",
+    "--record-games",
+    "0",
+    "--threads",
+    "14"
+  ],
+  "deck_seed": 1001,
+  "agent_seeds": [
+    43,
+    42
+  ],
+  "games": 50,
+  "elapsed_seconds": 150.1333556669997,
+  "exit_code": 0,
+  "binary_sha256": "d57dc9c6fdf99dd978f79effb3afe252938aa0527ba7e667eb9ade61370630cd",
+  "standings": [
+    {
+      "name": "mcb:256",
+      "strategy": "mcb:256",
+      "wins": 49,
+      "played": 50,
+      "losses": 1,
+      "draws": 0,
+      "win_percent": 98.0
+    },
+    {
+      "name": "mcp:8",
+      "strategy": "mcp:8",
+      "wins": 1,
+      "played": 50,
+      "losses": 49,
+      "draws": 0,
+      "win_percent": 2.0
+    }
+  ],
+  "stdout": "Agent    Strategy  Victories    Played    Losses     Draws    Win %\n-------------------------------------------------------------------\nmcb:256  mcb:256          49        50         1         0    98.0%\nmcp:8    mcp:8             1        50        49         0     2.0%\n\nHead to head (row's win % against column; games in brackets)\n               mcb:256          mcp:8\nmcb:256              -     98.0% (50)\nmcp:8        2.0% (50)              -\n\nGames played: 50 / 50 | Draws: 0 | Elapsed: 150.13s\n",
+  "stderr": "Deck seed: 1001 | Agent starting seeds: mcb:256=43, mcp:8=42\n\n0 / 50 games played\n1 / 50 games played\n2 / 50 games played\n3 / 50 games played\n4 / 50 games played\n5 / 50 games played\n6 / 50 games played\n7 / 50 games played\n8 / 50 games played\n9 / 50 games played\n10 / 50 games played\n11 / 50 games played\n12 / 50 games played\n13 / 50 games played\n14 / 50 games played\n15 / 50 games played\n16 / 50 games played\n18 / 50 games played\n19 / 50 games played\n20 / 50 games played\n21 / 50 games played\n23 / 50 games played\n24 / 50 games played\n25 / 50 games played\n27 / 50 games played\n28 / 50 games played\n29 / 50 games played\n30 / 50 games played\n31 / 50 games played\n32 / 50 games played\n33 / 50 games played\n34 / 50 games played\n35 / 50 games played\n36 / 50 games played\n37 / 50 games played\n38 / 50 games played\n39 / 50 games played\n40 / 50 games played\n41 / 50 games played\n42 / 50 games played\n43 / 50 games played\n44 / 50 games played\n45 / 50 games played\n46 / 50 games played\n47 / 50 games played\n49 / 50 games played\n50 / 50 games played\n"
+}

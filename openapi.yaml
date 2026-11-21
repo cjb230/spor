@@ -1,0 +1,578 @@
+openapi: 3.0.3
+info:
+  title: Schotten Totten Game Server
+  version: 0.1.0
+  description: |
+    Authoritative game server for two-player Schotten Totten.
+
+    - The server is the only source of truth. Clients send intents, never state.
+    - Every response is a per-player view; hidden information never leaks.
+    - Every state change increments `version`. Turn submissions carry the
+      version they were made against.
+    - A turn is one atomic request: play a card, optionally claim stones.
+      The server draws the replacement card.
+
+    Authentication: `Authorization: Bearer <seat token>`. The token identifies
+    the seat (0 or 1) and therefore which view you receive.
+
+servers:
+  - url: http://localhost:8000
+
+tags:
+  - name: lobby
+  - name: play
+  - name: observe
+
+security:
+  - seatToken: []
+
+paths:
+  /games:
+    post:
+      tags: [lobby]
+      summary: Create a game
+      description: Creates a game and seats the caller in seat 0.
+      security: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGameRequest'
+      responses:
+        '201':
+          description: Game created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SeatGrant'
+
+  /games/{gameId}/join:
+    post:
+      tags: [lobby]
+      summary: Take the second seat
+      description: Seats the caller in seat 1. The game starts once both seats are filled.
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+      responses:
+        '201':
+          description: Joined
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SeatGrant'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Game already has two players
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /games/{gameId}:
+    get:
+      tags: [observe]
+      summary: Get your view of the game
+      description: |
+        Returns the state as visible to the calling seat. If `since` is given
+        and equals the current version, the request long-polls until the
+        version changes or `timeout` seconds elapse (then returns 204).
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+        - name: since
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+          description: Last version the client has seen.
+        - name: timeout
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 60
+            default: 30
+          description: Maximum long-poll wait in seconds.
+      responses:
+        '200':
+          description: Current player view
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameView'
+        '204':
+          description: Long-poll timed out with no change
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /games/{gameId}/legal-moves:
+    get:
+      tags: [observe]
+      summary: Enumerate legal plays and claimable stones
+      description: |
+        Convenience endpoint for bots. Returns every legal (card, stone) play
+        and the stones that could be claimed right now, before any play.
+        Claims made in a turn are evaluated after that turn's card is placed,
+        so a stone listed here is claimable regardless of the play chosen;
+        additional stones may become claimable after the play.
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+      responses:
+        '200':
+          description: Legal moves
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LegalMoves'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /games/{gameId}/turn:
+    post:
+      tags: [play]
+      summary: Submit your turn
+      description: |
+        Processing order:
+        1. Validate it is your turn and `version` matches.
+        2. Validate the card is in your hand, and the stone has fewer than
+           three of your cards and is not claimed.
+        3. Place the card. If it is your third card there and the opponent
+           has not completed, you become `first_to_complete`.
+        4. Evaluate each claim in order. The whole turn is rejected if any
+           claim is invalid; nothing is committed on rejection.
+        5. Check win conditions (five stones, or three adjacent).
+        6. If the game continues, draw your replacement card and pass the turn.
+
+        If you have no legal play, omit `play` to pass; claims are still allowed.
+        If neither player has a legal play, the server settles every remaining
+        stone itself and ends the game.
+
+        If `turn_id` was seen before from this seat, your current view is
+        returned instead of an error, so retries after network failures are safe.
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TurnRequest'
+      responses:
+        '200':
+          description: Turn accepted; your updated view
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameView'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Version does not match (STALE_VERSION). Re-fetch and retry.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Illegal move
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /games/{gameId}/events:
+    get:
+      tags: [observe]
+      summary: Server-sent stream of public events
+      description: |
+        Optional SSE stream. Each event's `data` is an `Event` JSON object.
+        Events contain only public information.
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+      responses:
+        '200':
+          description: Event stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                description: SSE frames whose data is an Event JSON object.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /games/{gameId}/log:
+    get:
+      tags: [observe]
+      summary: Public move log
+      description: |
+        Full public history. Hidden information (hands, draw order) is
+        included only once the game has finished.
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+      responses:
+        '200':
+          description: Move log
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameLog'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  securitySchemes:
+    seatToken:
+      type: http
+      scheme: bearer
+      description: Opaque seat token returned by create/join.
+
+  parameters:
+    GameId:
+      name: gameId
+      in: path
+      required: true
+      schema:
+        type: string
+        example: g_81f3
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Not allowed in the current state (NOT_YOUR_TURN, GAME_NOT_STARTED, GAME_OVER)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Game not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    Color:
+      type: string
+      enum: [red, blue, green, yellow, purple, brown]
+
+    Card:
+      type: object
+      required: [color, value]
+      properties:
+        color:
+          $ref: '#/components/schemas/Color'
+        value:
+          type: integer
+          minimum: 1
+          maximum: 9
+      example: {color: red, value: 7}
+
+    StoneIndex:
+      type: integer
+      minimum: 0
+      maximum: 8
+      description: Position of the stone, left to right.
+
+    Formation:
+      type: string
+      description: Formation type, strongest first.
+      enum: [color_run, three_of_a_kind, color, run, sum]
+
+    CreateGameRequest:
+      type: object
+      properties:
+        auto_claim:
+          type: boolean
+          default: false
+          description: If true, the server awards provable stones automatically.
+        turn_timeout_seconds:
+          type: integer
+          minimum: 5
+          nullable: true
+          description: Per-turn clock. Null means no limit.
+        seed:
+          type: integer
+          nullable: true
+          description: Deck shuffle seed, for reproducible games and tests.
+
+    SeatGrant:
+      type: object
+      required: [game_id, seat, token]
+      properties:
+        game_id:
+          type: string
+        seat:
+          type: integer
+          enum: [0, 1]
+        token:
+          type: string
+          description: Bearer token for this seat.
+
+    Stone:
+      type: object
+      required: [index, yours, theirs, claimed_by, first_to_complete]
+      properties:
+        index:
+          $ref: '#/components/schemas/StoneIndex'
+        yours:
+          type: array
+          maxItems: 3
+          items:
+            $ref: '#/components/schemas/Card'
+        theirs:
+          type: array
+          maxItems: 3
+          items:
+            $ref: '#/components/schemas/Card'
+        claimed_by:
+          type: string
+          enum: [you, them]
+          nullable: true
+        first_to_complete:
+          type: string
+          enum: [you, them]
+          nullable: true
+          description: Who placed their third card first; breaks exact ties.
+
+    GameView:
+      type: object
+      required:
+        - game_id
+        - version
+        - status
+        - you
+        - turn
+        - hand
+        - opponent_hand_count
+        - deck_count
+        - stones
+        - unseen_cards
+      properties:
+        game_id:
+          type: string
+        version:
+          type: integer
+        status:
+          type: string
+          enum: [waiting_for_opponent, in_progress, finished, forfeit]
+        you:
+          type: integer
+          enum: [0, 1]
+        turn:
+          type: integer
+          enum: [0, 1]
+          nullable: true
+        phase:
+          type: string
+          enum: [waiting, your_turn, opponent_turn, game_over]
+        hand:
+          type: array
+          items:
+            $ref: '#/components/schemas/Card'
+        opponent_hand_count:
+          type: integer
+        deck_count:
+          type: integer
+        stones:
+          type: array
+          minItems: 9
+          maxItems: 9
+          items:
+            $ref: '#/components/schemas/Stone'
+        unseen_cards:
+          type: array
+          description: |
+            All 54 cards minus those on the table minus your own hand.
+            Derivable from public information plus your hand.
+          items:
+            $ref: '#/components/schemas/Card'
+        turn_deadline:
+          type: string
+          format: date-time
+          nullable: true
+        winner:
+          type: string
+          enum: [you, them]
+          nullable: true
+        win_reason:
+          type: string
+          enum: [five_stones, three_adjacent, forfeit, stalemate]
+          nullable: true
+
+    Play:
+      type: object
+      required: [card, stone]
+      properties:
+        card:
+          $ref: '#/components/schemas/Card'
+        stone:
+          $ref: '#/components/schemas/StoneIndex'
+
+    TurnRequest:
+      type: object
+      description: |
+        `play` may be omitted only when you have no legal play (empty hand, or
+        your side is full at every unclaimed stone). The turn is then a pass,
+        optionally with claims, and no card is drawn.
+      required: [version]
+      properties:
+        version:
+          type: integer
+          description: The version of the view this turn was decided against.
+        turn_id:
+          type: string
+          format: uuid
+          description: Optional client-generated id for idempotent retries.
+        play:
+          $ref: '#/components/schemas/Play'
+        claims:
+          type: array
+          default: []
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/StoneIndex'
+
+    LegalMoves:
+      type: object
+      required: [version, plays, claimable]
+      properties:
+        version:
+          type: integer
+        plays:
+          type: array
+          items:
+            type: object
+            required: [card, stones]
+            properties:
+              card:
+                $ref: '#/components/schemas/Card'
+              stones:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StoneIndex'
+        claimable:
+          type: array
+          description: Stones provably claimable right now.
+          items:
+            $ref: '#/components/schemas/StoneIndex'
+
+    Event:
+      type: object
+      required: [version, type]
+      properties:
+        version:
+          type: integer
+        type:
+          type: string
+          enum: [player_joined, game_started, card_played, stone_claimed, turn_passed, game_finished]
+        seat:
+          type: integer
+          enum: [0, 1]
+        card:
+          $ref: '#/components/schemas/Card'
+        stone:
+          $ref: '#/components/schemas/StoneIndex'
+        formation:
+          $ref: '#/components/schemas/Formation'
+        winner_seat:
+          type: integer
+          enum: [0, 1]
+        win_reason:
+          type: string
+          enum: [five_stones, three_adjacent, forfeit, stalemate]
+
+    LogEntry:
+      type: object
+      description: |
+        `play` is absent when the player passed. Stones awarded by `auto_claim`
+        are not listed in `claims`; they appear in the event stream.
+      required: [version, seat, claims]
+      properties:
+        version:
+          type: integer
+        seat:
+          type: integer
+          enum: [0, 1]
+        play:
+          $ref: '#/components/schemas/Play'
+        claims:
+          type: array
+          items:
+            $ref: '#/components/schemas/StoneIndex'
+
+    GameLog:
+      type: object
+      required: [game_id, status, entries]
+      properties:
+        game_id:
+          type: string
+        status:
+          type: string
+          enum: [waiting_for_opponent, in_progress, finished, forfeit]
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/LogEntry'
+        revealed:
+          type: object
+          nullable: true
+          description: Present only after the game ends.
+          properties:
+            initial_hands:
+              type: array
+              minItems: 2
+              maxItems: 2
+              items:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Card'
+            draw_order:
+              type: array
+              items:
+                $ref: '#/components/schemas/Card'
+
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+          enum:
+            - UNAUTHORIZED
+            - NOT_FOUND
+            - GAME_NOT_STARTED
+            - GAME_OVER
+            - NOT_YOUR_TURN
+            - STALE_VERSION
+            - GAME_FULL
+            - CARD_NOT_IN_HAND
+            - STONE_FULL
+            - STONE_ALREADY_CLAIMED
+            - CLAIM_INCOMPLETE
+            - CLAIM_NOT_PROVABLE
+            - PLAY_REQUIRED
+            - INVALID_REQUEST
+        detail:
+          type: string

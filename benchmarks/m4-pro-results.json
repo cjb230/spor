@@ -1,0 +1,21 @@
+{
+  "date": "2026-11-16",
+  "hardware": "MacBook Pro M4 Pro",
+  "machine": "arm64",
+  "logical_cpus": 14,
+  "rustc": "1.100.0",
+  "target_cpu": "apple-m4 (native)",
+  "profile": {"opt_level": 3, "lto": "fat", "codegen_units": 1},
+  "repeats": 3,
+  "seeds": {"deck": 1, "bots": 1},
+  "timing": "external wall clock including process startup",
+  "results": [
+    {"workload":"python-rest","games":100,"wall_seconds":[4.679398082997068,4.706558917008806,4.675955415994395],"median_seconds":4.679398082997068,"games_per_second":21.370269899318302,"wins":[95,5],"draws":0},
+    {"workload":"rust-rest","games":100,"wall_seconds":[4.0167358339967905,4.20381870798883,3.9549502080044476],"median_seconds":4.0167358339967905,"games_per_second":24.895836851809236,"wins":[95,5],"draws":0},
+    {"workload":"python-direct","games":100,"wall_seconds":[0.6313042910041986,0.627247417010949,0.6289935419918038],"median_seconds":0.6289935419918038,"games_per_second":158.98414423037602,"wins":[95,5],"draws":0},
+    {"workload":"rust-native-1-threads","games":100000,"wall_seconds":[3.6162385000061477,3.628424166003242,3.6368012919992907],"median_seconds":3.628424166003242,"games_per_second":27560.17362494621,"wins":[96196,3804],"draws":0},
+    {"workload":"rust-native-4-threads","games":100000,"wall_seconds":[0.9526515420002397,0.9546842919953633,0.9551846250105882],"median_seconds":0.9546842919953633,"games_per_second":104746.66948902274,"wins":[96196,3804],"draws":0},
+    {"workload":"rust-native-8-threads","games":100000,"wall_seconds":[0.49528179099434055,0.49553462499170564,0.5000839169952087],"median_seconds":0.49553462499170564,"games_per_second":201802.24540651185,"wins":[96196,3804],"draws":0},
+    {"workload":"rust-native-14-threads","games":100000,"wall_seconds":[0.35056966700358316,0.3432112079899525,0.34449075000884477],"median_seconds":0.34449075000884477,"games_per_second":290283.5562273661,"wins":[96196,3804],"draws":0}
+  ]
+}

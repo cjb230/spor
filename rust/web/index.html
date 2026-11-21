@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#102e27">
+  <title>Schotten Totten · The boundary table</title>
+  <link rel="stylesheet" href="/web/style.css?v=recent-cards-2">
+  <script type="module" src="/web/app.js?v=recent-cards-2"></script>
+</head>
+<body>
+  <header class="masthead">
+    <a class="brand" href="/" aria-label="Schotten Totten home"><span class="brand-mark" aria-hidden="true">ST</span><span>Schotten Totten<small>THE BOUNDARY TABLE</small></span></a>
+    <nav aria-label="Game mode"><button id="play-mode" class="tab active" aria-pressed="true">Play the game</button><button id="replay-mode" class="tab" aria-pressed="false">Recordings</button></nav>
+    <button id="new-game" class="button subtle">New game</button>
+  </header>
+  <main>
+    <section class="intro"><div><p class="eyebrow" id="mode-label">A GAME OF SMALL BATTLES</p><h1 id="headline">Nine stones. One boundary.</h1></div><p class="intro-note">Build your formations.<br>Claim your ground.</p></section>
+    <div id="notice" class="notice" role="alert" hidden></div>
+    <section id="library" class="library" hidden aria-label="Recorded games"><div class="section-heading"><div><p class="eyebrow">THE ARCHIVE</p><h2>Recorded games</h2></div><button id="refresh" class="button subtle">Refresh library</button></div><p id="library-status" role="status"></p><div id="recording-list" class="recording-list"></div></section>
+    <section class="table" aria-label="Game table">
+      <div class="table-top"><div class="player"><span class="avatar" aria-hidden="true">✦</span><div><h2 id="opponent-name">MCB</h2><p id="opponent-status">Native Monte Carlo bot</p></div></div><div class="scoreboard" aria-label="Game score"><span><b id="their-score">0</b><small id="their-score-label">MCB stones</small></span><span class="deck"><b id="deck">—</b><small>in the deck</small></span><span><b id="your-score">0</b><small id="your-score-label">Your stones</small></span></div></div>
+      <p id="recent-turn" class="recent-turn" role="status" aria-live="polite" hidden></p>
+      <div id="opponent-hand" class="opponent-hand" aria-label="Opponent hand"></div>
+      <div class="board-scroll" tabindex="0" role="region" aria-label="Nine boundary stones. Scroll horizontally on small screens."><div id="board" class="board"></div></div>
+      <div class="table-caption"><span id="board-hint">Your formations below · opponent above</span><span>WIN 3 ADJACENT OR 5 TOTAL</span></div>
+      <p id="drag-status" class="drag-status" role="status"></p><div id="result" class="result" role="status" hidden></div>
+      <p id="recording-status" class="recording-status" role="status" hidden></p><div class="hand-area"><div class="hand-section"><div class="section-heading"><h2 id="hand-title">Your hand</h2><span id="hand-count" class="muted"></span></div><div id="hand" class="hand"></div></div><div id="play-controls" class="move-panel"><p class="eyebrow" id="turn-label" role="status">WELCOME TO THE TABLE</p><p id="selection">Start a game to take your seat.</p><button id="confirm" class="button primary" disabled>Play card</button><button id="pass" class="button subtle" hidden>Pass turn</button><button id="retry" class="button subtle" hidden>Reconnect</button><p class="fine-print">Drag a card onto a stone to play. On touch, hold briefly, then drag. Or select a card, then a stone and confirm.<br>Provable claims are made automatically.</p></div></div>
+      <section id="replay-controls" class="replay-controls" hidden aria-label="Replay playback"><div class="replay-heading"><div><p class="eyebrow">RECORDED GAME</p><p id="replay-meta"></p></div><span id="frame-label"></span></div><input id="seek" type="range" min="0" max="0" value="0" aria-label="Replay turn"><div class="transport"><div><button id="first" class="button subtle" aria-label="First turn">|←</button><button id="previous" class="button subtle" aria-label="Previous turn">←</button><button id="autoplay" class="button primary">Play replay</button><button id="next" class="button subtle" aria-label="Next turn">→</button><button id="last" class="button subtle" aria-label="Last turn">→|</button></div><label>Speed <select id="speed"><option value="1600">0.5×</option><option value="800" selected>1×</option><option value="400">2×</option><option value="200">4×</option></select></label></div><p id="last-move" class="muted"></p></section>
+    </section>
+    <footer><span>A little strategy. A little nerve.</span><span>SCHOTTEN TOTTEN · LOCAL TABLE</span></footer>
+  </main>
+  <dialog id="settings"><form id="settings-form"><button type="button" id="close-settings" class="close" aria-label="Close settings">×</button><p class="eyebrow">TAKE YOUR SEAT</p><h2>A new boundary awaits.</h2><p class="muted">Choose an opponent for your next game.</p><label for="opponent-choice">Opponent</label><select id="opponent-choice" aria-describedby="opponent-description"><option value="random">Random</option><option value="greedy">Greedy</option><option value="builder">Builder</option><option value="tactician">Tactician</option><option value="planner">Planner</option><option value="mcg">MCG</option><option value="mcb" selected>MCB</option><option value="mcp">MCP</option></select><p id="opponent-description" class="fine-print"></p><div id="samples-group"><label for="samples">Samples per decision</label><input id="samples" type="text" inputmode="numeric" pattern="[0-9]+" value="20" aria-describedby="samples-help sampling-warning" required><p id="samples-help" class="fine-print">More samples give the search more simulated games per decision. No sampling cap. Use 0 to skip search and use the greedy heuristic.</p><p id="sampling-warning" class="sampling-warning" role="status" aria-live="polite" hidden></p></div><details><summary>Reproducible game settings</summary><label for="seed">Deal seed <span class="muted">optional</span></label><input id="seed" type="text" inputmode="numeric" placeholder="Random"><label for="bot-seed">Bot seed <span class="muted">optional</span></label><input id="bot-seed" type="text" inputmode="numeric" placeholder="Random"><p class="fine-print">Signed 64-bit integers. Leave blank for a fresh game.</p></details><p id="settings-error" class="form-error" role="alert"></p><button id="create" class="button primary" type="submit">Deal a new game</button></form></dialog>
+</body>
+</html>
