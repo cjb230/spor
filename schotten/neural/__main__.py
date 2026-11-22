@@ -25,6 +25,32 @@ def main(argv=None):
     trainer.add_argument("--seed", type=int, default=1)
     trainer.add_argument("--hidden", type=int, nargs=2, default=(256, 256))
     trainer.add_argument("--device", choices=("auto", "cpu", "mps"), default="auto")
+    generator = commands.add_parser("generate", help="generate compact disk-backed teacher examples")
+    generator.add_argument("--output", type=Path, required=True)
+    generator.add_argument("--examples", type=int, required=True, help="exact training row count")
+    generator.add_argument("--validation-examples", type=int, default=100000,
+                           help="additional examples from separate games")
+    generator.add_argument("--teacher", default="mcb:16")
+    generator.add_argument("--opponents", nargs="+", default=["builder", "tactician", "planner", "mcb:16"])
+    generator.add_argument("--seed", type=int, default=1001)
+    generator.add_argument("--shard-size", type=int, default=65536)
+    generator.add_argument("--threads", type=int, default=None,
+                           help="native worker threads (default: all available CPU cores)")
+    generator.add_argument("--worker", type=Path, default=Path("rust/target/release/examples/neural_generate"))
+    generator.add_argument("--progress-interval", type=float, default=1)
+    generator.add_argument("--resume", action="store_true")
+    streaming = commands.add_parser("train-stream", help="train on shards with resumable total epochs")
+    streaming.add_argument("--dataset", type=Path, required=True)
+    streaming.add_argument("--initial", type=Path, required=True)
+    streaming.add_argument("--output", type=Path, required=True, help="directory for last.pt, best.pt and metrics")
+    streaming.add_argument("--epochs", type=int, required=True, help="total target epochs, including on resume")
+    streaming.add_argument("--batch-size", type=int, default=512)
+    streaming.add_argument("--learning-rate", type=float, default=0.001)
+    streaming.add_argument("--seed", type=int, default=1)
+    streaming.add_argument("--device", choices=("auto", "cpu", "mps"), default="auto")
+    streaming.add_argument("--resume", type=Path)
+    streaming.add_argument("--progress-interval", type=float, default=1)
+    streaming.add_argument("--checkpoint-interval", type=float, default=60)
     for command in ("create", "join"):
         player = commands.add_parser(command, help=f"{command} a REST game using saved weights")
         player.add_argument("--checkpoint", type=Path, required=True)
@@ -36,6 +62,14 @@ def main(argv=None):
             player.add_argument("--seed", type=int)
     args = parser.parse_args(argv)
     try:
+        if args.command == "generate":
+            from .generate import generate
+            generate(**{key: value for key, value in vars(args).items() if key != "command"})
+            return 0
+        if args.command == "train-stream":
+            from .stream_train import train_stream
+            train_stream(**{key: value for key, value in vars(args).items() if key != "command"})
+            return 0
         import torch
         from .model import Policy, load_checkpoint, save_checkpoint
         if args.command == "init":

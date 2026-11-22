@@ -5,4 +5,5 @@ __pycache__/
 rust/target/
 tournament-recordings/
 models/
+datasets/
 .venv-ml/
