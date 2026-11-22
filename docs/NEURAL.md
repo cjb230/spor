@@ -162,6 +162,10 @@ the server continues to receive ordinary versioned REST turns.
 
 ## Controlled before/after experiments
 
+For tens of millions of examples, use the disk-backed generation and training
+commands in [Large MLP imitation experiments](STREAMING_EXPERIMENTS.md). The old
+recording-based `train` command still loads its dataset into memory.
+
 The [first completed MCB:16 comparison](../benchmarks/mlp-comparison-2026-11-21/RESULTS.md)
 measured 20,000 games per checkpoint. Wins increased from 0.080% to 0.485%,
 but the fixed teacher corpus overfit heavily; the validation-selected weights

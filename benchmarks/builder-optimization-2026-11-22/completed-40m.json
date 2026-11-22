@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "run": "mcb16-40m",
+  "generation_completed": true,
+  "scope": "Example generation; training status not assessed",
+  "training_examples": 40000000,
+  "validation_examples": 100000,
+  "elapsed_seconds": 34500,
+  "elapsed_source": "User-reported elapsed time; final generator progress timer reads 34472 seconds",
+  "generator_progress_elapsed_seconds": 34472,
+  "training_examples_generated_per_second": 1159.4202898550725,
+  "total_examples_per_second": 1162.3188405797102,
+  "shards": 613,
+  "compressed_shard_bytes": 916368180,
+  "bytes_per_example": 22.852074314214462,
+  "manifest_sha256": "e34ed001104248aa5636bcaa38de677f2b974d73378bc0db770ea44a14344921",
+  "config": {
+    "examples": 40000000,
+    "validation_examples": 100000,
+    "teacher": "mcb:16",
+    "seed": 1001,
+    "opponents": [
+      "builder",
+      "tactician",
+      "planner",
+      "mcb:16"
+    ],
+    "shard_size": 65536,
+    "threads": 14,
+    "worker_sha256": "c231d7c691e0ef280633feaef23d1d98d533dd5b9fb9469f7546e580cee10229",
+    "protocol_version": 1
+  },
+  "game_cursors": {
+    "train": 1567599,
+    "validation": 3939
+  },
+  "validation_note": "Counts, completion flag, shard file sizes and manifest hash checked; full shard contents were not replayed or rehashed for this summary."
+}

@@ -1,0 +1,153 @@
+{
+  "description": "Sequential native generation benchmarks after agent-launched Rust debug suite was confirmed terminated. Single short run per setting, not sustained throughput or statistical comparison.",
+  "excluded_runs": [
+    "before-8.json",
+    "after-8.json"
+  ],
+  "runs": {
+    "clean-before-8": {
+      "worker_sha256": "fded8bfc97bdfa1cdedece05648bc573dfb628609534c9e5bf3bb27ef9a0e140",
+      "threads": 8,
+      "examples": 4096,
+      "seed": 2001,
+      "teacher": "mcb:16",
+      "opponents": [
+        "builder",
+        "tactician",
+        "planner",
+        "mcb:16"
+      ],
+      "requests": [
+        1024,
+        1024,
+        1024,
+        1024
+      ],
+      "wall_seconds": 39.86413549998542,
+      "cpu_seconds": 189.637673,
+      "average_cpu_cores": 4.757099849815365,
+      "examples_per_second": 102.74899853281649,
+      "rows_sha256": "e225ab91e89998f2136f4d0fd922dbfcea97994e4de706ce6f5ab98544dd18c1",
+      "cursors": [
+        40,
+        80,
+        120,
+        161
+      ],
+      "compressed_npz_bytes": 94997,
+      "compressed_bytes_per_example": 23.192626953125,
+      "estimated_125m_decimal_GB": 2.899078369140625,
+      "speedup_vs_before": 1.0
+    },
+    "clean-after-8": {
+      "worker_sha256": "6170a7a409704afe7196e12e9d0d94d2660fc4aef90d7c39654c90b3471232cd",
+      "threads": 8,
+      "examples": 4096,
+      "seed": 2001,
+      "teacher": "mcb:16",
+      "opponents": [
+        "builder",
+        "tactician",
+        "planner",
+        "mcb:16"
+      ],
+      "requests": [
+        1024,
+        1024,
+        1024,
+        1024
+      ],
+      "wall_seconds": 26.44925595901441,
+      "cpu_seconds": 208.03185900000003,
+      "average_cpu_cores": 7.865319891129067,
+      "examples_per_second": 154.86257936129223,
+      "rows_sha256": "e225ab91e89998f2136f4d0fd922dbfcea97994e4de706ce6f5ab98544dd18c1",
+      "cursors": [
+        40,
+        80,
+        120,
+        161
+      ],
+      "compressed_npz_bytes": 94997,
+      "compressed_bytes_per_example": 23.192626953125,
+      "estimated_125m_decimal_GB": 2.899078369140625,
+      "speedup_vs_before": 1.5071930780116698
+    },
+    "clean-after-10": {
+      "worker_sha256": "6170a7a409704afe7196e12e9d0d94d2660fc4aef90d7c39654c90b3471232cd",
+      "threads": 10,
+      "examples": 4096,
+      "seed": 2001,
+      "teacher": "mcb:16",
+      "opponents": [
+        "builder",
+        "tactician",
+        "planner",
+        "mcb:16"
+      ],
+      "requests": [
+        1024,
+        1024,
+        1024,
+        1024
+      ],
+      "wall_seconds": 23.46203404199332,
+      "cpu_seconds": 225.080557,
+      "average_cpu_cores": 9.593394869223252,
+      "examples_per_second": 174.5799188880559,
+      "rows_sha256": "e225ab91e89998f2136f4d0fd922dbfcea97994e4de706ce6f5ab98544dd18c1",
+      "cursors": [
+        40,
+        80,
+        120,
+        161
+      ],
+      "shutdown_seconds": 0.0010845420183613896,
+      "compressed_npz_bytes": 94997,
+      "compressed_bytes_per_example": 23.192626953125,
+      "estimated_125m_decimal_GB": 2.899078369140625,
+      "speedup_vs_before": 1.6990911968090636
+    },
+    "clean-after-14": {
+      "worker_sha256": "6170a7a409704afe7196e12e9d0d94d2660fc4aef90d7c39654c90b3471232cd",
+      "threads": 14,
+      "examples": 4096,
+      "seed": 2001,
+      "teacher": "mcb:16",
+      "opponents": [
+        "builder",
+        "tactician",
+        "planner",
+        "mcb:16"
+      ],
+      "requests": [
+        1024,
+        1024,
+        1024,
+        1024
+      ],
+      "wall_seconds": 22.951166917046066,
+      "cpu_seconds": 248.876623,
+      "average_cpu_cores": 10.843745936733038,
+      "examples_per_second": 178.4658712476122,
+      "rows_sha256": "e225ab91e89998f2136f4d0fd922dbfcea97994e4de706ce6f5ab98544dd18c1",
+      "cursors": [
+        40,
+        80,
+        120,
+        161
+      ],
+      "shutdown_seconds": 0.0012172500137239695,
+      "compressed_npz_bytes": 94997,
+      "compressed_bytes_per_example": 23.192626953125,
+      "estimated_125m_decimal_GB": 2.899078369140625,
+      "speedup_vs_before": 1.736911053109806
+    }
+  },
+  "source_hashes": {
+    "rust/examples/neural_generate.rs": "009a0b344342d6ce05f515d8679f579524f74c17f9528045560f8d0dd22be7af",
+    "schotten/neural/generate.py": "3307a5557b8f92018a7ed4c3a0872cdfa17bbe38acf76aadee90e4064d03ed23",
+    "schotten/neural/__main__.py": "18440c70a9771a2514819a8f1b8120653d8a3a752587e2f77bde597a87b48efa",
+    "worker": "6170a7a409704afe7196e12e9d0d94d2660fc4aef90d7c39654c90b3471232cd"
+  }
+}

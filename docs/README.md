@@ -7,6 +7,10 @@ Current usage and behavior are documented in:
   browse recordings and control replays.
 - [Neural player guide](NEURAL.md): MLP structure, training from teacher games,
   saved weights, resume, and Python REST play.
+- [Large MLP experiments](STREAMING_EXPERIMENTS.md): compact dataset generation,
+  disk-backed training, progress, and resumable 40/125-million-example commands.
+- [Generation performance](GENERATION_PERFORMANCE.md): CPU scheduling, cached
+  future games, compressed storage estimates and deferred optimization ideas.
 - [OpenAPI contract](../openapi.yaml): game endpoints, schemas and errors shared by both servers.
 - [Native README](../rust/README.md): Rust builds, server, strategies, seeded series,
   tournaments, recordings and tests.
