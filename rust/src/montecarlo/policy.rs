@@ -134,7 +134,7 @@ pub fn rollout_move_with(
 ) -> Option<Move> {
     let mode = match kind {
         Rollout::Greedy => return rollout_move(sim, p, rng, epsilon),
-        Rollout::Builder => Mode::Builder,
+        Rollout::Builder => return builder_rollout_move(sim, p, rng, epsilon),
         Rollout::Planner => Mode::Planner,
     };
     let list = sim.legal_moves(p);
@@ -150,4 +150,109 @@ pub fn rollout_move_with(
     }
     let play = deterministic::choose(&player_view(sim, p), mode)?;
     Some((play.card.id(), play.stone as u8))
+}
+
+/// Builder enumerates candidates itself; only the epsilon branch needs a
+/// uniformly sampled legal move. Select that move directly in the original
+/// card-major/stone-minor order, without constructing a 54-entry MoveList.
+fn builder_rollout_move(sim: &Sim, p: usize, rng: &mut Rng, epsilon: f32) -> Option<Move> {
+    let hand = sim.hands[p];
+    if hand == 0 {
+        return None;
+    }
+    let mut open = 0u16;
+    for (index, stone) in sim.stones.iter().enumerate() {
+        if stone.claimed < 0 && stone.n[p] < 3 {
+            open |= 1 << index;
+        }
+    }
+    if open == 0 {
+        return None;
+    }
+    let stones = open.count_ones() as usize;
+    let count = hand.count_ones() as usize * stones;
+    // Preserve both RNG draws even when the random branch has only one move.
+    if epsilon > 0.0 && rng.f32() < epsilon {
+        let index = rng.below(count);
+        let mut cards = hand;
+        for _ in 0..index / stones {
+            cards &= cards - 1;
+        }
+        for _ in 0..index % stones {
+            open &= open - 1;
+        }
+        return Some((cards.trailing_zeros() as u8, open.trailing_zeros() as u8));
+    }
+    if count == 1 {
+        return Some((hand.trailing_zeros() as u8, open.trailing_zeros() as u8));
+    }
+    deterministic::choose(&player_view(sim, p), Mode::Builder)
+        .map(|play| (play.card.id(), play.stone as u8))
+}
+
+#[cfg(test)]
+mod builder_tests {
+    use super::*;
+    use crate::montecarlo::sim::Claims;
+
+    // The previous Builder wrapper, including exact random-number consumption.
+    fn original(sim: &Sim, p: usize, rng: &mut Rng, epsilon: f32) -> Option<Move> {
+        let list = sim.legal_moves(p);
+        let moves = list.as_slice();
+        if moves.is_empty() {
+            return None;
+        }
+        if epsilon > 0.0 && rng.f32() < epsilon {
+            return Some(moves[rng.below(moves.len())]);
+        }
+        if moves.len() == 1 {
+            return Some(moves[0]);
+        }
+        deterministic::choose(&player_view(sim, p), Mode::Builder)
+            .map(|play| (play.card.id(), play.stone as u8))
+    }
+
+    fn compare(sim: &Sim, p: usize, seed: u64) {
+        for epsilon in [0.0, 0.1, 1.0] {
+            let mut before = Rng::new(seed);
+            let mut after = Rng::new(seed);
+            assert_eq!(
+                rollout_move_with(Rollout::Builder, sim, p, &mut after, epsilon),
+                original(sim, p, &mut before, epsilon),
+                "epsilon={epsilon}"
+            );
+            for _ in 0..8 {
+                assert_eq!(after.next_u64(), before.next_u64());
+            }
+        }
+    }
+
+    #[test]
+    fn builder_rollouts_preserve_moves_and_random_streams() {
+        for seed in 0..64 {
+            let mut rng = Rng::new(seed);
+            let mut sim = Sim::deal(&mut rng);
+            for turn in 0..128 {
+                let p = sim.turn;
+                compare(&sim, p, seed * 128 + turn);
+                let play = rollout_move(&sim, p, &mut rng, 0.3);
+                if sim.apply_turn(p, play, Claims::Auto).unwrap().is_some() {
+                    break;
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn builder_rollouts_preserve_pass_and_forced_move_rng() {
+        let mut sim = Sim::from_deal([0, 1], &[]);
+        compare(&sim, 0, 21);
+        for stone in &mut sim.stones {
+            stone.claimed = 1;
+        }
+        sim.stones[4].claimed = -1;
+        compare(&sim, 1, 42);
+        sim.stones[4].claimed = 0;
+        compare(&sim, 1, 73);
+    }
 }

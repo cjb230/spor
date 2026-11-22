@@ -22,6 +22,7 @@ pub fn cards(pool: u64) -> impl Iterator<Item = u8> {
 
 struct Tables {
     strengths: Box<[u8]>,
+    builder_strengths: Box<[u8]>,
     ranked: Vec<(Strength, u64)>,
 }
 static TABLES: OnceLock<Tables> = OnceLock::new();
@@ -42,6 +43,7 @@ fn combination_index(mut a: usize, mut b: usize, mut c: usize) -> usize {
 fn tables() -> &'static Tables {
     TABLES.get_or_init(|| {
         let mut strengths = vec![0u8; 24804];
+        let mut builder_strengths = vec![0u8; 54 * 54 * 54];
         let mut ranked = Vec::with_capacity(24804);
         for a in 0u8..54 {
             for b in a + 1..54 {
@@ -63,6 +65,16 @@ fn tables() -> &'static Tables {
                     };
                     let s = formation * 32 + vs.iter().sum::<u8>();
                     strengths[combination_index(a as usize, b as usize, c as usize)] = s;
+                    for [x, y, z] in [
+                        [a, b, c],
+                        [a, c, b],
+                        [b, a, c],
+                        [b, c, a],
+                        [c, a, b],
+                        [c, b, a],
+                    ] {
+                        builder_strengths[(x as usize * 54 + y as usize) * 54 + z as usize] = s;
+                    }
                     ranked.push((s as Strength, mask([a, b, c])));
                 }
             }
@@ -70,6 +82,7 @@ fn tables() -> &'static Tables {
         ranked.sort_unstable_by_key(|a| std::cmp::Reverse(a.0));
         Tables {
             strengths: strengths.into_boxed_slice(),
+            builder_strengths: builder_strengths.into_boxed_slice(),
             ranked,
         }
     })
@@ -77,6 +90,10 @@ fn tables() -> &'static Tables {
 
 pub fn warmup() {
     let _ = tables();
+}
+
+pub(crate) fn builder_strengths() -> &'static [u8] {
+    &tables().builder_strengths
 }
 
 pub fn evaluate(cs: &[u8]) -> Strength {
@@ -93,6 +110,17 @@ pub fn formation_label(s: Strength) -> &'static str {
 
 pub fn claim_is_provable(mine: &[u8], theirs: &[u8], pool: u64, tiebreak_mine: bool) -> bool {
     let strength = evaluate(mine);
+    claim_is_provable_strength(strength, theirs, pool, tiebreak_mine)
+}
+
+/// Internal callers that already evaluated a complete formation can reuse its
+/// strength. The proof and exact-tie rules are identical to the public helper.
+pub(crate) fn claim_is_provable_strength(
+    strength: Strength,
+    theirs: &[u8],
+    pool: u64,
+    tiebreak_mine: bool,
+) -> bool {
     let blocks = |s| s > strength || (s == strength && !tiebreak_mine);
     let needed = 3 - theirs.len();
     if needed == 0 {
@@ -192,6 +220,64 @@ mod tests {
             FULL_POOL & !mask([6, 7, 8]),
             true
         ));
+    }
+
+    #[test]
+    fn precomputed_strength_claims_match_standard_proofs() {
+        use crate::montecarlo::rng::Rng;
+        let mut rng = Rng::new(719);
+        for _ in 0..1000 {
+            let mut cards: Vec<u8> = (0..54).collect();
+            rng.shuffle(&mut cards);
+            let mine = &cards[..3];
+            for count in 0..=3 {
+                let theirs = &cards[3..3 + count];
+                let available = &cards[3 + count..];
+                let n = rng.below(available.len() + 1);
+                let pool = mask(available[..n].iter().copied());
+                for first in [false, true] {
+                    let expected = matches!(
+                        crate::montecarlo::rules::check_claim(
+                            [mine[0], mine[1], mine[2]],
+                            theirs,
+                            pool,
+                            first,
+                        ),
+                        crate::montecarlo::rules::Proof::Provable
+                    );
+                    assert_eq!(
+                        claim_is_provable_strength(evaluate(mine), theirs, pool, first),
+                        expected
+                    );
+                    assert_eq!(claim_is_provable(mine, theirs, pool, first), expected);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn builder_dense_lookup_matches_every_distinct_triple_permutation() {
+        let dense = builder_strengths();
+        assert_eq!(dense.len(), 54 * 54 * 54);
+        for a in 0u8..54 {
+            for b in a + 1..54 {
+                for c in b + 1..54 {
+                    for [x, y, z] in [
+                        [a, b, c],
+                        [a, c, b],
+                        [b, a, c],
+                        [b, c, a],
+                        [c, a, b],
+                        [c, b, a],
+                    ] {
+                        assert_eq!(
+                            dense[(x as usize * 54 + y as usize) * 54 + z as usize] as Strength,
+                            evaluate(&[a, b, c])
+                        );
+                    }
+                }
+            }
+        }
     }
     #[test]
     fn winning_order_and_five_stones_precedence() {

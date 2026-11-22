@@ -283,7 +283,199 @@ fn reply_cards(view: &PlayerView, candidate: &Candidate) -> u64 {
     view.unseen & !view.hand & !public
 }
 
+// Zero represents no completion: every legal three-card strength is positive.
+// Each triple contributes to all three possible opening plays, once per hand.
+fn builder_empty_completions(cards: &[u8], strengths: &[u8]) -> [Strength; 54] {
+    let mut best = [0; 54];
+    for (i, &a) in cards.iter().enumerate() {
+        for (j, &b) in cards.iter().enumerate().skip(i + 1) {
+            let row = &strengths[(a as usize * 54 + b as usize) * 54..][..54];
+            for &c in &cards[j + 1..] {
+                let strength = row[c as usize] as Strength;
+                for card in [a, b, c] {
+                    best[card as usize] = best[card as usize].max(strength);
+                }
+            }
+        }
+    }
+    best
+}
+
+fn builder_pair_completions(existing: u8, cards: &[u8], strengths: &[u8]) -> [Strength; 54] {
+    let mut best = [0; 54];
+    for (i, &a) in cards.iter().enumerate() {
+        let row = &strengths[(existing as usize * 54 + a as usize) * 54..][..54];
+        for &b in &cards[i + 1..] {
+            let strength = row[b as usize] as Strength;
+            best[a as usize] = best[a as usize].max(strength);
+            best[b as usize] = best[b as usize].max(strength);
+        }
+    }
+    best
+}
+
+fn builder_own_value(stone: ViewStone, strength: Strength, theirs: Strength) -> i64 {
+    let mut value = if strength == 0 {
+        public_value(stone.yours)
+    } else {
+        8 * i64::from(strength) + 100 * stone.yours.len() as i64
+    };
+    if theirs != 0 {
+        if stone.yours.len() == 3 {
+            if strength < theirs || (strength == theirs && stone.first_to_complete != Some(true)) {
+                value -= 4_000;
+            }
+        } else if strength != 0 && strength <= theirs {
+            value -= 1_200;
+        }
+    }
+    value
+}
+
+fn builder_won(mask: u16) -> bool {
+    mask.count_ones() >= 5 || (mask & (mask >> 1) & (mask >> 2)) != 0
+}
+
+#[derive(Default)]
+struct BuilderBest {
+    choice: Option<((bool, u32, i64), usize, u8)>,
+}
+
+impl BuilderBest {
+    fn consider(&mut self, rank: (bool, u32, i64), stone: usize, card: u8) {
+        if self.choice.is_none_or(|(old, old_stone, old_card)| {
+            rank > old || (rank == old && (stone, card) < (old_stone, old_card))
+        }) {
+            self.choice = Some((rank, stone, card));
+        }
+    }
+
+    fn play(self) -> Option<Play> {
+        self.choice.map(|(_, stone, card)| Play {
+            stone,
+            card: Card::from_id(card),
+        })
+    }
+}
+
+fn choose_builder(view: &PlayerView) -> Option<Play> {
+    let mut hand = [0; 54];
+    let mut count = 0;
+    for card in rules::cards(view.hand) {
+        hand[count] = card;
+        count += 1;
+    }
+    if count == 0 {
+        return None;
+    }
+    let cards = &hand[..count];
+    let strengths = rules::builder_strengths();
+    let mut own_mask = 0u16;
+    let mut base_claims = 0;
+    for (idx, stone) in view.stones.iter().enumerate() {
+        if stone.claimed_by == Some(true) {
+            own_mask |= 1 << idx;
+        } else if stone.claimed_by.is_none()
+            && stone.yours.len() == 3
+            && rules::claim_is_provable(
+                stone.yours.as_slice(),
+                stone.theirs.as_slice(),
+                view.unseen,
+                stone.first_to_complete == Some(true),
+            )
+        {
+            own_mask |= 1 << idx;
+            base_claims += 1;
+        }
+    }
+    let base_winning = builder_won(own_mask);
+    let mut best = BuilderBest::default();
+    let mut new_claim_found = false;
+
+    // Only completions can add a claim. Score these first; if any claims,
+    // every partial play ranks lower, even when the base view already wins.
+    for (idx, &stone) in view.stones.iter().enumerate() {
+        if stone.claimed_by.is_some() || stone.yours.len() != 2 {
+            continue;
+        }
+        let theirs = if stone.theirs.len() == 3 {
+            let line = stone.theirs.as_slice();
+            strengths[(line[0] as usize * 54 + line[1] as usize) * 54 + line[2] as usize]
+                as Strength
+        } else {
+            0
+        };
+        for &card in cards {
+            let mut target = stone;
+            target.yours.push(card);
+            if target.first_to_complete.is_none() {
+                target.first_to_complete = Some(true);
+            }
+            let line = target.yours.as_slice();
+            let strength = strengths
+                [(line[0] as usize * 54 + line[1] as usize) * 54 + line[2] as usize]
+                as Strength;
+            let first = target.first_to_complete == Some(true);
+            let new_claim = if theirs != 0 {
+                // The opponent is complete; its cached strength answers the
+                // proof directly, without reevaluating either formation.
+                strength > theirs || (strength == theirs && first)
+            } else {
+                rules::claim_is_provable_strength(
+                    strength,
+                    target.theirs.as_slice(),
+                    view.unseen,
+                    first,
+                )
+            };
+            new_claim_found |= new_claim;
+            let winning = base_winning || (new_claim && builder_won(own_mask | (1 << idx)));
+            best.consider(
+                (
+                    winning,
+                    base_claims + u32::from(new_claim),
+                    builder_own_value(target, strength, theirs),
+                ),
+                idx,
+                card,
+            );
+        }
+    }
+    if new_claim_found {
+        return best.play();
+    }
+
+    let mut empty_completions = None;
+    for (idx, &stone) in view.stones.iter().enumerate() {
+        if stone.claimed_by.is_some() || stone.yours.len() >= 2 {
+            continue;
+        }
+        let pairs;
+        let completions = if stone.yours.is_empty() {
+            empty_completions.get_or_insert_with(|| builder_empty_completions(cards, strengths))
+        } else {
+            pairs = builder_pair_completions(stone.yours.as_slice()[0], cards, strengths);
+            &pairs
+        };
+        let theirs = if stone.theirs.len() == 3 {
+            rules::evaluate(stone.theirs.as_slice())
+        } else {
+            0
+        };
+        for &card in cards {
+            let mut target = stone;
+            target.yours.push(card);
+            let score = builder_own_value(target, completions[card as usize], theirs);
+            best.consider((base_winning, base_claims, score), idx, card);
+        }
+    }
+    best.play()
+}
+
 pub fn choose(view: &PlayerView, mode: Mode) -> Option<Play> {
+    if matches!(mode, Mode::Builder) {
+        return choose_builder(view);
+    }
     let mut evaluator = Evaluator::default();
     let mut candidates = evaluator.candidates(view, mode);
     if !matches!(mode, Mode::Planner) || candidates.first().is_none_or(|c| c.winning) {
@@ -310,6 +502,186 @@ mod tests {
     use crate::bots::Bot;
     use crate::engine::{Card, Line, ViewStone};
     use crate::rules::{self, FULL_POOL};
+
+    // Count only allocations on the test thread, so parallel tests cannot
+    // contaminate the measurement. Rules' process-wide tables are warmed first.
+    struct CountingAllocator;
+    thread_local! {
+        static ALLOCATIONS: std::cell::Cell<Option<usize>> = const { std::cell::Cell::new(None) };
+    }
+    fn count_allocation() {
+        let _ = ALLOCATIONS.try_with(|count| {
+            if let Some(n) = count.get() {
+                count.set(Some(n + 1));
+            }
+        });
+    }
+    unsafe impl std::alloc::GlobalAlloc for CountingAllocator {
+        unsafe fn alloc(&self, layout: std::alloc::Layout) -> *mut u8 {
+            count_allocation();
+            unsafe { std::alloc::GlobalAlloc::alloc(&std::alloc::System, layout) }
+        }
+        unsafe fn alloc_zeroed(&self, layout: std::alloc::Layout) -> *mut u8 {
+            count_allocation();
+            unsafe { std::alloc::GlobalAlloc::alloc_zeroed(&std::alloc::System, layout) }
+        }
+        unsafe fn dealloc(&self, ptr: *mut u8, layout: std::alloc::Layout) {
+            unsafe { std::alloc::GlobalAlloc::dealloc(&std::alloc::System, ptr, layout) }
+        }
+        unsafe fn realloc(&self, ptr: *mut u8, layout: std::alloc::Layout, size: usize) -> *mut u8 {
+            count_allocation();
+            unsafe { std::alloc::GlobalAlloc::realloc(&std::alloc::System, ptr, layout, size) }
+        }
+    }
+    #[global_allocator]
+    static ALLOCATOR: CountingAllocator = CountingAllocator;
+
+    fn builder_oracle(view: &PlayerView) -> Option<Play> {
+        Evaluator::default()
+            .candidates(view, Mode::Builder)
+            .first()
+            .map(|candidate| candidate.play.clone())
+    }
+
+    fn assert_builder_oracle(view: &PlayerView) {
+        assert_eq!(
+            choose(view, Mode::Builder),
+            builder_oracle(view),
+            "{view:?}"
+        );
+    }
+
+    #[test]
+    fn builder_allocates_nothing_after_rules_warmup() {
+        rules::warmup();
+        let mut views = vec![position(&[0, 1, 2, 8, 17, 35])];
+        let mut mixed = position(&[2, 11, 20, 29, 38, 47]);
+        mixed.stones[0].yours = Line::from_slice(&[0]);
+        mixed.stones[1].yours = Line::from_slice(&[9, 10]);
+        mixed.stones[2].theirs = Line::from_slice(&[24, 25, 26]);
+        mixed.stones[2].first_to_complete = Some(false);
+        mixed.stones[3].yours = Line::from_slice(&[6, 7, 8]);
+        mixed.stones[3].first_to_complete = Some(true);
+        refresh(&mut mixed);
+        views.push(mixed);
+        views.push(position(&[0]));
+        views.push(position(&[]));
+        views.push(position(&(0..54).collect::<Vec<_>>()));
+        for view in views {
+            let expected = builder_oracle(&view);
+            ALLOCATIONS.with(|count| count.set(Some(0)));
+            let actual = std::hint::black_box(choose(std::hint::black_box(&view), Mode::Builder));
+            let allocations = ALLOCATIONS.with(|count| count.replace(None).unwrap());
+            assert_eq!(actual, expected);
+            assert_eq!(allocations, 0, "Builder allocated for {view:?}");
+        }
+    }
+
+    #[test]
+    fn builder_matches_oracle_on_random_disjoint_views() {
+        let mut rng = crate::rng::PythonRandom::seeded(8237);
+        for case in 0..2500 {
+            let mut deck = std::array::from_fn::<_, 54, _>(|i| i as u8);
+            rng.shuffle(&mut deck);
+            let hand_len = if case % 11 == 0 {
+                rng.below(55)
+            } else {
+                rng.below(7)
+            };
+            let mut view = position(&deck[..hand_len]);
+            let mut next = hand_len;
+            for stone in &mut view.stones {
+                let ours = rng.below(4).min(54 - next);
+                stone.yours = Line::from_slice(&deck[next..next + ours]);
+                next += ours;
+                let theirs = rng.below(4).min(54 - next);
+                stone.theirs = Line::from_slice(&deck[next..next + theirs]);
+                next += theirs;
+                stone.first_to_complete = match (ours == 3, theirs == 3) {
+                    (true, true) => Some(rng.below(2) == 0),
+                    (true, false) => Some(true),
+                    (false, true) => Some(false),
+                    _ => None,
+                };
+                // Also exercise terminal-like and claimed partial views.
+                stone.claimed_by = match rng.below(8) {
+                    0 => Some(true),
+                    1 => Some(false),
+                    _ => None,
+                };
+            }
+            refresh(&mut view);
+            if case % 3 == 0 {
+                view.unseen &= rng.bits(54);
+            }
+            assert_builder_oracle(&view);
+        }
+    }
+
+    #[test]
+    fn builder_matches_oracle_through_complete_game_traces() {
+        use crate::engine::{Game, Options, TurnRequest};
+        for seed in 0..80 {
+            let options = Options {
+                seed: Some(seed),
+                auto_claim: true,
+                ..Default::default()
+            };
+            let mut game = Game::new(String::new(), options, 0, false);
+            game.join(0).unwrap();
+            let mut rng = crate::rng::PythonRandom::seeded(seed as i128);
+            let mut turns = 0;
+            while !game.over() {
+                let seat = game.turn.unwrap();
+                let view = game.player_view(seat);
+                assert_builder_oracle(&view);
+                let mut chosen = builder_oracle(&view);
+                if seed % 2 != 0 && seat == 1 {
+                    let candidates = Evaluator::default().candidates(&view, Mode::Builder);
+                    if !candidates.is_empty() {
+                        chosen = Some(candidates[rng.below(candidates.len())].play.clone());
+                    }
+                }
+                let claims = Bot::provable_stones(&view, chosen.as_ref());
+                game.play_turn(
+                    seat,
+                    TurnRequest {
+                        version: view.version as i64,
+                        turn_id: None,
+                        play: chosen,
+                        claims,
+                    },
+                    0,
+                )
+                .unwrap();
+                turns += 1;
+                assert!(turns < 120);
+            }
+            assert!(game.outcome().is_some());
+        }
+    }
+
+    #[test]
+    fn builder_oracle_covers_short_hands_ties_and_already_won_views() {
+        for hand in [&[][..], &[20][..], &[20, 29][..], &[20, 29, 38][..]] {
+            for first in [None, Some(false), Some(true)] {
+                for already_won in [false, true] {
+                    let mut view = position(hand);
+                    view.stones[0].yours = Line::from_slice(&[0, 10]);
+                    view.stones[0].theirs = Line::from_slice(&[27, 37, 47]);
+                    view.stones[0].first_to_complete = first;
+                    view.stones[1].yours = Line::from_slice(&[1]);
+                    if already_won {
+                        for idx in [3, 4, 5] {
+                            view.stones[idx].claimed_by = Some(true);
+                        }
+                    }
+                    refresh(&mut view);
+                    assert_builder_oracle(&view);
+                }
+            }
+        }
+    }
 
     fn position(hand: &[u8]) -> PlayerView {
         PlayerView {
